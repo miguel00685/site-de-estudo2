@@ -1488,8 +1488,11 @@ function mostrarResultado() {
     document.getElementById("notaFinal").textContent =
         `${porcentagem}%`;
 
+    document.getElementById("acertosFinal").textContent =
+        `${acertos} ${acertos === 1 ? "questão acertada" : "questões acertadas"}`;
+
     document.getElementById("textoResultado").textContent =
-        `Você acertou ${acertos} de ${respondidas} questões respondidas. Restam ${50 - respondidas} questões para concluir o treino do dia.`;
+        `Você respondeu ${respondidas} de 50 questões, errou ${respondidas - acertos} e ainda tem ${50 - respondidas} para concluir o treino do dia.`;
 
     quiz.classList.add("escondido");
     resultado.classList.remove("escondido");
