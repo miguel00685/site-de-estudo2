@@ -1041,6 +1041,13 @@ function carregarProgresso() {
 /* INICIA O QUIZ */
 
 function iniciarQuiz() {
+    const usuarioAtual = localStorage.getItem("usuarioAtual");
+
+    if (!usuarioAtual) {
+        mostrarStatusCadastro("Faça seu cadastro ou login para começar.");
+        return false;
+    }
+
     questoes = gerarQuestoes();
 
     const progresso = carregarProgresso();
@@ -1061,6 +1068,8 @@ function iniciarQuiz() {
     quiz.scrollIntoView({
         behavior: "smooth"
     });
+
+    return true;
 }
 
 /* MOSTRA UMA QUESTÃO */
@@ -1316,12 +1325,18 @@ document
 
 /* BOTÃO PRINCIPAL */
 
-botaoComecar.addEventListener("click", () => {
-    if (!salvarCadastro()) {
+botaoComecar.addEventListener("click", async () => {
+    botaoComecar.disabled = true;
+
+    const acessoLiberado = await salvarCadastro();
+
+    if (!acessoLiberado) {
+        botaoComecar.disabled = false;
         return;
     }
 
     iniciarQuiz();
+    botaoComecar.disabled = false;
 });
 
 /* INICIALIZA O SITE */
