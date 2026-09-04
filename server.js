@@ -17,6 +17,13 @@ const db = new sqlite3.Database(databaseFile);
 
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  if (req.path.startsWith("/data/") || req.path.endsWith(".db")) {
+    return res.status(404).end();
+  }
+
+  next();
+});
 app.use(express.static(rootDir));
 
 function validarEmail(email) {

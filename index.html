@@ -593,8 +593,8 @@
         <div class="painel">
             <div class="painel-topo">
                 <div>
-                    <small>ACESSO OBRIGATÓRIO</small>
-                    <h2>Escolha o nível</h2>
+                    <small>SELEÇÃO</small>
+                    <h2>Escolha matéria e nível</h2>
                 </div>
 
                 <span class="contador">50 questões</span>
@@ -606,26 +606,8 @@
 
             <p class="explicacao-nivel" id="explicacaoNivel"></p>
 
-            <div class="cadastro">
-                <label for="nomeCadastro">Nome</label>
-                <input id="nomeCadastro" type="text" placeholder="Digite seu nome" />
-
-                <label for="emailCadastro">E-mail</label>
-                <input id="emailCadastro" type="email" placeholder="seu@email.com" />
-
-                <label for="senhaCadastro">Senha</label>
-                <input id="senhaCadastro" type="password" placeholder="Crie uma senha" />
-
-                <small id="statusCadastro">Faça cadastro ou login para responder às questões.</small>
-
-                <div class="lista-usuarios" id="listaUsuarios">
-                    <strong>Quem entrou</strong>
-                    <span>Nenhum usuário cadastrado ainda.</span>
-                </div>
-            </div>
-
             <button class="botao-principal" id="botaoComecar">
-                Fazer login e começar
+                Começar treino
             </button>
         </div>
     </section>
@@ -645,6 +627,7 @@
         <article class="questao-cartao">
             <span class="materia" id="materiaQuestao"></span>
             <span class="tipo-questao" id="tipoQuestao"></span>
+            <span class="tipo-questao" id="origemQuestao"></span>
 
             <h2 id="pergunta"></h2>
 
@@ -677,7 +660,7 @@
 </main>
 
 <footer class="rodape">
-    Questões demonstrativas para estudo. Não são questões oficiais do Inep.
+    Questões autorais inspiradas em formatos de ENEM, FUVEST e outros vestibulares. Não são questões oficiais.
 </footer>
 
 <script src="script.js"></script>

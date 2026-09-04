@@ -32,6 +32,7 @@ let questoes = [];
 let respostas = {};
 let alternativaSelecionada = null;
 let materiaSelecionada = "Matemática";
+const nivelPorMateria = {};
 
 const materias = [
     "Matemática",
@@ -75,7 +76,13 @@ const statusCadastro =
 const listaUsuarios =
     document.getElementById("listaUsuarios");
 
-const API_URL = "/api";
+const ehServidorLocal = ["localhost", "127.0.0.1"].includes(
+    window.location.hostname
+);
+
+const API_URL = window.location.protocol === "file:" || ehServidorLocal
+    ? "http://localhost:3000/api"
+    : `${window.location.origin}/api`;
 
 function mostrarStatusCadastro(mensagem, sucesso = false) {
     statusCadastro.textContent = mensagem;
@@ -136,7 +143,9 @@ async function salvarCadastro() {
         await listarUsuarios();
         return true;
     } catch (erro) {
-        const mensagem = erro.message || "Não foi possível concluir o acesso.";
+        const mensagem = erro.name === "TypeError"
+            ? "Não foi possível conectar ao servidor. Abra o site em http://localhost:3000 e verifique se o backend está ligado."
+            : erro.message || "Não foi possível concluir o acesso.";
 
         if (mensagem.includes("Tentando entrar com o login")) {
             try {
@@ -232,7 +241,7 @@ function criarMaterias() {
 
         botao.addEventListener("click", () => {
             materiaSelecionada = materia;
-            nivelSelecionado = 1;
+            nivelSelecionado = nivelPorMateria[materia] || 1;
             questaoAtual = 0;
             respostas = {};
             alternativaSelecionada = null;
@@ -272,6 +281,7 @@ function criarNiveis() {
 
         botao.addEventListener("click", () => {
             nivelSelecionado = numero;
+            nivelPorMateria[materiaSelecionada] = numero;
 
             criarNiveis();
             atualizarBotaoInicial();
@@ -370,7 +380,8 @@ function criarQuestao(
     respostasErradas,
     explicacao,
     random,
-    tipo = "Texto"
+    tipo = "Texto",
+    origem = "Questão autoral"
 ) {
     let opcoes = [
         respostaCorreta,
@@ -394,6 +405,7 @@ function criarQuestao(
     return {
         materia,
         tipo,
+        origem,
         pergunta,
         alternativas: opcoes,
         correta: opcoes.indexOf(respostaCorreta),
@@ -921,13 +933,21 @@ function gerarQuestoes() {
         Espanhol: ["Lectura", "Diálogo", "Anuncio", "Texto", "Contexto"]
     };
 
+    const estilosVestibular = [
+        "Estilo ENEM",
+        "Estilo FUVEST",
+        "Estilo UNICAMP",
+        "Estilo UNESP",
+        "Estilo UERJ"
+    ];
+
     const lista = [];
 
     if (materiaSelecionada === "Matemática") {
         for (let i = 0; i < 50; i++) {
-            lista.push(
-                gerarMatematica(random, i)
-            );
+            const questao = gerarMatematica(random, i);
+            questao.origem = estilosVestibular[i % estilosVestibular.length];
+            lista.push(questao);
         }
 
         return embaralhar(lista, random);
@@ -963,7 +983,8 @@ function gerarQuestoes() {
                 item[2],
                 item[3],
                 random,
-                tipo
+                tipo,
+                estilosVestibular[lista.length % estilosVestibular.length]
             )
         );
     }
@@ -983,7 +1004,8 @@ function gerarQuestoes() {
                     item[2],
                     item[3],
                     random,
-                    tipo
+                    tipo,
+                    estilosVestibular[lista.length % estilosVestibular.length]
                 )
             );
         }
@@ -1041,13 +1063,6 @@ function carregarProgresso() {
 /* INICIA O QUIZ */
 
 function iniciarQuiz() {
-    const usuarioAtual = localStorage.getItem("usuarioAtual");
-
-    if (!usuarioAtual) {
-        mostrarStatusCadastro("Faça seu cadastro ou login para começar.");
-        return false;
-    }
-
     questoes = gerarQuestoes();
 
     const progresso = carregarProgresso();
@@ -1069,7 +1084,6 @@ function iniciarQuiz() {
         behavior: "smooth"
     });
 
-    return true;
 }
 
 /* MOSTRA UMA QUESTÃO */
@@ -1097,6 +1111,9 @@ function mostrarQuestao() {
 
     document.getElementById("tipoQuestao").textContent =
         questao.tipo || "Texto";
+
+    document.getElementById("origemQuestao").textContent =
+        questao.origem || "Questão autoral";
 
     document.getElementById("pergunta").textContent =
         questao.pergunta;
@@ -1325,23 +1342,12 @@ document
 
 /* BOTÃO PRINCIPAL */
 
-botaoComecar.addEventListener("click", async () => {
-    botaoComecar.disabled = true;
-
-    const acessoLiberado = await salvarCadastro();
-
-    if (!acessoLiberado) {
-        botaoComecar.disabled = false;
-        return;
-    }
-
+botaoComecar.addEventListener("click", () => {
     iniciarQuiz();
-    botaoComecar.disabled = false;
 });
 
 /* INICIALIZA O SITE */
 
-carregarCadastro();
 criarMaterias();
 criarNiveis();
 atualizarBotaoInicial();
