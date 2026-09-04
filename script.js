@@ -60,6 +60,142 @@ const quiz =
 const resultado =
     document.getElementById("resultado");
 
+const nomeCadastroInput =
+    document.getElementById("nomeCadastro");
+
+const emailCadastroInput =
+    document.getElementById("emailCadastro");
+
+const senhaCadastroInput =
+    document.getElementById("senhaCadastro");
+
+const statusCadastro =
+    document.getElementById("statusCadastro");
+
+const listaUsuarios =
+    document.getElementById("listaUsuarios");
+
+const API_URL = "/api";
+
+function mostrarStatusCadastro(mensagem, sucesso = false) {
+    statusCadastro.textContent = mensagem;
+    statusCadastro.style.color = sucesso ? "#3c6d56" : "#b16060";
+}
+
+function listarUsuarios() {
+    listaUsuarios.innerHTML = "<strong>Acesso protegido</strong><span>Os acessos ficam disponíveis apenas no painel do administrador.</span>";
+}
+
+async function salvarCadastro() {
+    const nome = nomeCadastroInput.value.trim();
+    const email = emailCadastroInput.value.trim();
+    const senha = senhaCadastroInput.value.trim();
+
+    if (!nome || !email || !senha) {
+        mostrarStatusCadastro("Preencha nome, e-mail e senha para continuar.");
+        return false;
+    }
+
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!emailValido) {
+        mostrarStatusCadastro("Digite um e-mail válido.");
+        return false;
+    }
+
+    if (senha.length < 4) {
+        mostrarStatusCadastro("A senha deve ter pelo menos 4 caracteres.");
+        return false;
+    }
+
+    try {
+        const resposta = await fetch(`${API_URL}/users/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: nome,
+                email,
+                password: senha
+            })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            if (resposta.status === 409) {
+                throw new Error("E-mail já cadastrado. Tentando entrar com o login...");
+            }
+
+            throw new Error(dados.error || "Não foi possível cadastrar.");
+        }
+
+        localStorage.setItem("usuarioAtual", JSON.stringify({ nome, email }));
+        mostrarStatusCadastro(`Login realizado para ${nome}.`, true);
+        await listarUsuarios();
+        return true;
+    } catch (erro) {
+        const mensagem = erro.message || "Não foi possível concluir o acesso.";
+
+        if (mensagem.includes("Tentando entrar com o login")) {
+            try {
+                const resposta = await fetch(`${API_URL}/users/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password: senha
+                    })
+                });
+
+                const dados = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(dados.error || "Senha incorreta.");
+                }
+
+                localStorage.setItem("usuarioAtual", JSON.stringify({
+                    nome: dados.name || nome,
+                    email: dados.email || email
+                }));
+
+                mostrarStatusCadastro(`Bem-vindo novamente, ${dados.name || nome}.`, true);
+                await listarUsuarios();
+                return true;
+            } catch (erroLogin) {
+                mostrarStatusCadastro(erroLogin.message || "Não foi possível realizar o login.");
+                return false;
+            }
+        }
+
+        mostrarStatusCadastro(mensagem);
+        return false;
+    }
+}
+
+function carregarCadastro() {
+    const salvo = localStorage.getItem("usuarioAtual");
+
+    if (!salvo) {
+        listarUsuarios();
+        return;
+    }
+
+    try {
+        const cadastro = JSON.parse(salvo);
+        nomeCadastroInput.value = cadastro.nome || "";
+        emailCadastroInput.value = cadastro.email || "";
+        mostrarStatusCadastro(`Usuário logado: ${cadastro.nome}.`, true);
+    } catch {
+        localStorage.removeItem("usuarioAtual");
+    }
+
+    listarUsuarios();
+}
+
 /* DATA LOCAL */
 
 function pegarDataLocal() {
@@ -498,360 +634,268 @@ function gerarMatematica(random, indice) {
 const bancoQuestoes = {
     Português: [
         [
-            "Na frase “A cidade acordou tossindo fumaça”, qual figura de linguagem aparece?",
+            "Em um texto argumentativo, a tese é normalmente apresentada como:",
+            "Uma ideia defendida ao longo do texto",
+            ["Um dado estatístico isolado", "Um resumo final sem opinião", "Uma pergunta sem resposta"],
+            "A tese organiza a linha de raciocínio e orienta a defesa do autor."
+        ],
+        [
+            "A expressão “por isso” em um texto estabelece relação de:",
+            "Consequência",
+            ["Concessão", "Contraste", "Comparação"],
+            "“Por isso” indica efeito ou resultado de uma ideia anterior."
+        ],
+        [
+            "Qual recurso foi usado na frase “A cidade acordou cedo, mas o trânsito já reclamava seu espaço”?",
             "Personificação",
-            ["Comparação", "Ironia", "Eufemismo"],
-            "A cidade recebe ações humanas: acordar e tossir."
+            ["Metonímia", "Hipérbole", "Catacrese"],
+            "O trânsito “reclama” como se fosse uma pessoa, caracterizando personificação."
         ],
         [
-            "A palavra “entretanto” normalmente apresenta qual ideia?",
-            "Contraste",
-            ["Causa", "Conclusão", "Explicação"],
-            "Entretanto é uma conjunção adversativa."
+            "A leitura crítica de uma notícia exige observar principalmente:",
+            "As fontes, o contexto e os dados apresentados",
+            ["A quantidade de imagens", "A cor usada no site", "O nome do autor"],
+            "Uma boa leitura crítica analisa argumentos, fontes e contexto."
         ],
         [
-            "A expressão “a gente” representa:",
-            "Uma variedade comum da linguagem informal",
-            [
-                "Um erro que impede a compreensão",
-                "Uma linguagem exclusivamente científica",
-                "Uma expressão estrangeira"
-            ],
-            "A expressão é comum na oralidade brasileira."
-        ],
-        [
-            "Um texto que apresenta argumentos para defender uma opinião é:",
-            "Argumentativo",
-            ["Narrativo", "Descritivo", "Instrucional"],
-            "O texto argumentativo procura defender uma tese."
-        ],
-        [
-            "Em “Desligue a tela e ligue-se em quem está perto”, existe:",
-            "Duplo sentido",
-            ["Linguagem científica", "Ausência de verbos", "Erro gramatical"],
-            "Os verbos ligar e desligar possuem diferentes sentidos."
-        ],
-        [
-            "Uma reportagem usa dados e o depoimento de uma pessoa. Isso ajuda a:",
-            "Unir informação numérica e experiência humana",
-            [
-                "Eliminar a necessidade de provas",
-                "Criar uma ficção",
-                "Esconder o assunto"
-            ],
-            "Dados e relatos apresentam perspectivas complementares."
-        ],
-        [
-            "A expressão “embora estivesse cansado” apresenta ideia de:",
+            "Em “Embora estivesse cansado, concluiu o trabalho”, a palavra “embora” introduz ideia de:",
             "Concessão",
-            ["Finalidade", "Adição", "Causa"],
-            "Embora introduz uma concessão."
+            ["Finalidade", "Causa", "Adição"],
+            "“Embora” indica um fato que dificulta a ação, mas não a impede."
         ],
         [
-            "Uma pergunta no título de um artigo pode ser usada para:",
-            "Criar expectativa no leitor",
-            [
-                "Proibir a leitura",
-                "Eliminar argumentos",
-                "Impedir uma conclusão"
-            ],
-            "A pergunta orienta a leitura para uma possível resposta."
+            "A principal função do conectivo “contudo” é:",
+            "Introduzir oposição",
+            ["Indicar conclusão", "Organizar enumeração", "Expressar dúvida"],
+            "“Contudo” é uma conjunção adversativa, típica de contraste."
+        ],
+        [
+            "Um texto em que o autor expõe argumentos para convencer o leitor é classificado como:",
+            "Argumentativo",
+            ["Descritivo", "Narrativo", "Expositivo"],
+            "Esses textos têm a finalidade de persuadir ou defender uma tese."
+        ],
+        [
+            "Qual é a função da metáfora em um texto literário?",
+            "Produzir uma imagem mais expressiva e subjetiva",
+            ["Informar com precisão absoluta", "Eliminar a interpretação pessoal", "Substituir toda a argumentação"],
+            "A metáfora amplia a expressão artística e a percepção do leitor."
         ]
     ],
 
     Natureza: [
         [
-            "Qual organela está ligada à produção de energia na respiração celular?",
-            "Mitocôndria",
-            ["Ribossomo", "Lisossomo", "Complexo golgiense"],
-            "A mitocôndria participa da produção de ATP."
+            "Em uma reação de neutralização, ácido e base reagem para formar:",
+            "Sal e água",
+            ["Oxigênio e hidrogênio", "Água e gás carbônico", "Metal e gás"],
+            "A neutralização típica produz sal e água."
         ],
         [
-            "As vacinas ajudam o organismo porque:",
-            "Estimulam a memória imunológica",
-            [
-                "Eliminam todas as bactérias",
-                "Substituem o sangue",
-                "Impedem qualquer mutação"
-            ],
-            "Elas preparam o sistema imunológico."
+            "A mitocôndria é fundamental para a célula porque:",
+            "Produz ATP por respiração celular",
+            ["Armazena material genético", "Produz proteínas ribossômicas", "Controla a divisão celular"],
+            "A mitocôndria é o principal local de produção de energia celular."
         ],
         [
-            "Uma lâmpada de 10 W ligada por 5 horas consome:",
-            "50 Wh",
-            ["2 Wh", "15 Wh", "500 Wh"],
-            "Energia é potência multiplicada pelo tempo."
+            "Se uma lâmpada de 60 W permanece acesa por 2 horas, o consumo é de:",
+            "120 Wh",
+            ["30 Wh", "60 Wh", "180 Wh"],
+            "Energia = potência × tempo: 60 × 2 = 120 Wh."
         ],
         [
-            "Uma solução de pH 3, comparada a uma de pH 5, possui concentração de H⁺:",
-            "100 vezes maior",
-            ["2 vezes maior", "10 vezes menor", "100 vezes menor"],
-            "Cada unidade de pH representa uma diferença de 10 vezes."
-        ],
-        [
-            "No cruzamento Aa × Aa, a chance de nascer um indivíduo aa é:",
+            "No cruzamento Aa × Aa, qual é a probabilidade de nascer um indivíduo homozigoto recessivo?",
             "25%",
-            ["0%", "50%", "75%"],
-            "O cruzamento produz AA, Aa, Aa e aa."
+            ["50%", "75%", "100%"],
+            "Aa × Aa gera AA, Aa, Aa e aa, sendo 25% aa."
         ],
         [
-            "O aumento do efeito estufa acontece principalmente pela:",
-            "Retenção de radiação infravermelha",
-            [
-                "Eliminação do oxigênio",
-                "Produção de luz visível",
-                "Redução da gravidade"
-            ],
-            "Gases do efeito estufa retêm parte da energia térmica."
+            "A presença de gás carbônico na atmosfera favorece o efeito estufa porque:",
+            "Retém parte do calor irradiado pela Terra",
+            ["Aumenta a quantidade de oxigênio", "Reduz a umidade do ar", "Elimina a radiação solar"],
+            "Os gases do efeito estufa absorvem e reemitem parte do calor."
         ],
         [
-            "Em uma cadeia alimentar, os produtores são importantes porque:",
-            "Transformam energia luminosa em energia química",
-            [
-                "Alimentam-se de todos os animais",
-                "Não precisam de energia",
-                "Produzem minerais"
-            ],
-            "Plantas e algas realizam fotossíntese."
+            "Em uma cadeia alimentar, os consumidores primários são:",
+            "Herbívoros",
+            ["Carnívoros de topo", "Produtores", "Decompositores"],
+            "Consumidores primários se alimentam diretamente dos produtores."
         ],
         [
-            "No ponto mais alto de um lançamento vertical, o objeto possui:",
-            "Velocidade zero e aceleração para baixo",
-            [
-                "Velocidade e aceleração zero",
-                "Aceleração para cima",
-                "Velocidade máxima"
-            ],
-            "A velocidade zera momentaneamente, mas a gravidade continua agindo."
+            "Uma solução com pH 2 é, em comparação com outra de pH 5:",
+            "1000 vezes mais ácida",
+            ["100 vezes mais ácida", "10 vezes menos ácida", "3 vezes mais ácida"],
+            "Cada unidade de pH representa variação de 10 vezes na concentração de H+."
         ],
         [
-            "O sabão facilita a remoção de gordura porque:",
-            "Interage tanto com a água quanto com a gordura",
-            [
-                "Transforma gordura em oxigênio",
-                "Elimina a água",
-                "Funciona apenas pelo calor"
-            ],
-            "As moléculas do sabão possuem uma parte polar e outra apolar."
+            "O papel das vacinas no sistema imunológico é:",
+            "Estimular a memória imunológica para respostas futuras",
+            ["Causar doença para fortalecer o organismo", "Substituir células do sangue", "Eliminar todos os microrganismos"],
+            "As vacinas preparam o sistema imune para reconhecer rapidamente o patógeno."
+        ],
+        [
+            "No lançamento vertical, no ponto mais alto, a velocidade do objeto é:",
+            "Zero",
+            ["Máxima", "Constante", "Igual à gravidade"],
+            "No instante de inversão do movimento, a velocidade momentaneamente se anula."
         ]
     ],
 
     Humanas: [
         [
-            "A participação em audiências públicas representa:",
-            "Exercício da cidadania",
-            [
-                "Fim das eleições",
-                "Suspensão dos direitos",
-                "Privatização obrigatória"
-            ],
-            "A população pode participar de decisões coletivas."
+            "A cidadania plena pressupõe, além dos direitos, o exercício de:",
+            "Deveres e participação política",
+            ["Isenção fiscal total", "Desobediência às leis", "Ausência de responsabilidades"],
+            "Cidadania envolve direitos, deveres e participação no espaço público."
         ],
         [
-            "O crescimento de bairros sem infraestrutura demonstra:",
-            "Desigualdade socioespacial",
-            [
-                "Igualdade urbana",
-                "Fim da periferia",
-                "Distribuição perfeita de serviços"
-            ],
-            "Os serviços urbanos não são distribuídos igualmente."
-        ],
-        [
-            "O movimento diário entre casa e trabalho é chamado de migração:",
-            "Pendular",
-            ["Sazonal", "Transcontinental", "Definitiva"],
-            "A migração pendular envolve idas e voltas frequentes."
-        ],
-        [
-            "A separação dos três poderes procura:",
+            "A divisão dos poderes no Estado tem como finalidade principal:",
             "Evitar a concentração de poder",
-            [
-                "Eliminar as leis",
-                "Criar um único governante",
-                "Proibir fiscalizações"
-            ],
-            "Os poderes possuem funções diferentes."
+            ["Eliminar as eleições", "Centralizar decisões econômicas", "Proibir a fiscalização"],
+            "A separação de poderes garante equilíbrio entre Executivo, Legislativo e Judiciário."
         ],
         [
-            "A Revolução Industrial aumentou a produtividade por meio da:",
-            "Divisão do trabalho e uso de máquinas",
-            [
-                "Eliminação das fábricas",
-                "Volta ao feudalismo",
-                "Proibição das máquinas"
-            ],
-            "A produção passou a ser organizada em etapas."
+            "A migração pendular é caracterizada por:",
+            "Deslocamentos diários entre moradia e trabalho",
+            ["Mudança definitiva para outro país", "Emigração por guerras", "Migração sazonal de colheita"],
+            "Esse tipo de deslocamento ocorre em rotina, com ida e volta frequentes."
         ],
         [
-            "A globalização é favorecida pelos transportes porque:",
-            "Acelera os fluxos entre territórios",
-            [
-                "Elimina todas as fronteiras",
-                "Acaba com as desigualdades",
-                "Isola os países"
-            ],
-            "Mercadorias e informações circulam mais rapidamente."
+            "A industrialização foi impulsionada, entre outros fatores, pelo(a):",
+            "Uso de máquinas e divisão do trabalho",
+            ["Extinção do comércio", "Fim da urbanização", "Abolição das fábricas"],
+            "A Revolução Industrial reorganizou a produção com mecanização e especialização."
         ],
         [
-            "O Iluminismo defendia principalmente:",
-            "Razão, direitos e limitação do poder",
-            [
-                "Absolutismo sem limites",
-                "Servidão medieval",
-                "Proibição da ciência"
-            ],
-            "Os iluministas criticavam o absolutismo."
+            "A globalização econômica se caracteriza pela:",
+            "Integração de mercados e mobilidade de capitais",
+            ["Isolamento comercial dos países", "Menor circulação de mercadorias", "Fim da tecnologia"],
+            "A globalização intensifica fluxos comerciais, financeiros e de informação."
         ],
         [
-            "Quando a produção acontece em vários países, temos:",
-            "Uma cadeia global de produção",
-            [
-                "Isolamento econômico",
-                "Fim do comércio",
-                "Produção exclusivamente artesanal"
-            ],
-            "As etapas produtivas são distribuídas por vários países."
+            "O iluminismo provocou mudanças na política ao defender:",
+            "A razão e a limitação do poder",
+            ["O absolutismo monárquico", "A expansão do feudalismo", "A proibição da ciência"],
+            "Os pensadores iluministas criticavam o poder absoluto e estimulavam a racionalidade."
         ],
         [
-            "A redução da natalidade e o aumento da expectativa de vida podem provocar:",
-            "Envelhecimento da população",
-            [
-                "Fim das cidades",
-                "Aumento da mortalidade infantil",
-                "Fim da migração"
-            ],
-            "A participação de pessoas mais velhas aumenta."
+            "Depois da Revolução Industrial, a urbanização cresceu porque:",
+            "Houve concentração de empregos e serviços nas cidades",
+            ["As cidades deixaram de receber população", "Os campos foram modernizados sem empregos", "Não havia trabalho industrial"],
+            "As indústrias atraíram trabalhadores para áreas urbanas."
+        ],
+        [
+            "A desigualdade socioespacial pode ser observada quando:",
+            "Há acesso desigual a serviços e infraestrutura entre bairros",
+            ["Todos os bairros têm a mesma renda", "Os serviços públicos são distribuídos igualmente", "Não existem áreas periféricas"],
+            "Esse fenômeno revela diferenças na distribuição de oportunidades e infraestrutura."
+        ],
+        [
+            "O envelhecimento da população está associado, em muitos países, ao(a):",
+            "Aumento da expectativa de vida e queda da natalidade",
+            ["Aumento constante da taxa de crianças", "Redução da expectativa de vida", "Extinção das cidades"],
+            "Esse cenário altera a estrutura etária da população."
         ]
     ],
 
     Inglês: [
         [
-            "“Small steps still move you forward.” The sentence encourages:",
-            "Gradual progress",
-            ["Giving up", "Avoiding goals", "Waiting for perfection"],
-            "Small steps are presented as real progress."
+            "“The success of the project depended on accurate data and clear communication.” The sentence suggests that:",
+            "Planning and information quality were essential",
+            ["The project failed because of delays", "Communication was irrelevant", "Data had no impact"],
+            "Accurate data and clear communication are presented as key conditions for success."
         ],
         [
-            "The word “but” normally expresses:",
-            "Contrast",
-            ["Cause", "Time", "Quantity"],
-            "But introduces an opposite idea."
+            "The expression “in light of” most nearly means:",
+            "Considering",
+            ["Despite", "Without", "Because of"],
+            "“In light of” introduces a reason or context for an action or decision."
         ],
         [
-            "“Think before you share.” The message recommends:",
-            "Checking information before sharing",
-            [
-                "Sharing everything",
-                "Ignoring information",
-                "Deleting the internet"
-            ],
-            "The sentence warns against sharing without thinking."
+            "“Students were encouraged to reflect on the impact of technology on daily life.” This implies that students should:",
+            "Think critically about the role of technology",
+            ["Stop using technology", "Ignore social changes", "Accept every innovation without question"],
+            "Reflection invites analysis and evaluation, not simple acceptance."
         ],
         [
-            "“The park is closed until further notice.” This means:",
-            "There is no confirmed reopening date",
-            [
-                "It opens tomorrow",
-                "It is always open",
-                "Only children can enter"
-            ],
-            "Further notice means another announcement is necessary."
+            "The word “benefit” is closest in meaning to:",
+            "Advantage",
+            ["Obstacle", "Risk", "Expense"],
+            "A benefit is a positive effect or advantage."
         ],
         [
-            "“Rewarding” is closest in meaning to:",
-            "Satisfying",
-            ["Impossible", "Useless", "Repetitive"],
-            "A rewarding experience creates satisfaction."
+            "“Remote work reduces commuting time, but it can also create isolation.” The contrast is between:",
+            "Convenience and emotional drawbacks",
+            ["Salary and transport", "Technology and education", "Work and leisure"],
+            "The sentence presents a positive effect and a negative side effect."
         ],
         [
-            "“Remote work saves commuting time.” What benefit is mentioned?",
-            "Less time traveling to work",
-            [
-                "Free transportation",
-                "No need to work",
-                "More traffic"
-            ],
-            "Commuting means traveling between home and work."
+            "In the sentence “The report highlights the need for transparency,” the verb “highlights” means:",
+            "Emphasizes",
+            ["Denies", "Delays", "Avoids"],
+            "To highlight is to bring attention to something important."
         ],
         [
-            "“Data needs context.” The sentence suggests that:",
-            "Information needs interpretation",
-            [
-                "All data is false",
-                "Context is useless",
-                "Numbers explain everything alone"
-            ],
-            "Context helps people understand information."
+            "“If the measure is implemented carefully, the results may improve.” This sentence expresses:",
+            "A conditional possibility",
+            ["A certainty without exception", "A past event only", "A contradiction"],
+            "The use of “if” introduces a condition and a possible outcome."
+        ],
+        [
+            "“Many students struggle with abstract concepts in science.” The sentence indicates that:",
+            "Some students find theoretical ideas difficult",
+            ["All students dislike science", "Science has no practical use", "Students never study theory"],
+            "The sentence does not generalize to all students, only many."
         ]
     ],
 
     Espanhol: [
         [
-            "“Aprender despacio también es avanzar.” La frase valora:",
-            "El progreso gradual",
-            [
-                "El abandono",
-                "La falta de objetivos",
-                "La velocidad extrema"
-            ],
-            "Avanzar despacio sigue siendo avanzar."
+            "La frase “La sostenibilidad requiere decisiones difíciles” sugiere que:",
+            "La sostenibilidad exige compromisos y cambios",
+            ["La sostenibilidad no implica esfuerzo", "La sostenibilidad se logra sin planificación", "La sostenibilidad depende solo de la tecnología"],
+            "La frase destaca que tomar decisiones complejas es parte del processo."
         ],
         [
-            "La palabra “pero” normalmente indica:",
-            "Contraste",
-            ["Causa", "Tiempo", "Cantidad"],
-            "Pero introduce una oposición."
+            "En la oración “Aunque estudió mucho, no aprobó”, la palabra “aunque” expresa:",
+            "Concesión",
+            ["Causa", "Consecuencia", "Tiempo"],
+            "“Aunque” introduce una idea que contrasta con el resultado final."
         ],
         [
-            "“Comprueba antes de compartir.” El mensaje recomienda:",
-            "Verificar la información",
-            [
-                "Publicar rápidamente",
-                "Ignorar el texto",
-                "Compartir todo"
-            ],
-            "Comprobar significa verificar."
+            "La expresión “a la vez” en un texto suele indicar:",
+            "Simultaneidad",
+            ["Finalidad", "Contradicción", "Exclusión"],
+            "“A la vez” une ideas que ocurren o coexisten simultáneamente."
         ],
         [
-            "“El museo está cerrado hasta nuevo aviso.” Esto significa:",
-            "No hay una fecha confirmada de reapertura",
-            [
-                "Abrirá mañana",
-                "Nunca cerró",
-                "La entrada es gratuita"
-            ],
-            "Será necesario esperar un nuevo comunicado."
+            "“El informe concluye que la educación es esencial para la movilidad social.” Esto significa que:",
+            "La educación tiene impacto en la ascensão social",
+            ["La educación no altera la vida social", "La movilidad social ocurre sin esfuerzo", "El informe niega la educación"],
+            "La conclusión destaca la relevancia de la educación para transformar oportunidades."
         ],
         [
-            "La palabra “inesperado” significa:",
-            "Que no se esperaba",
-            [
-                "Que fue planeado",
-                "Que ocurrió siempre",
-                "Que era obligatorio"
-            ],
-            "El prefijo in- expresa negación."
+            "La palabra “desafío” se refiere principalmente a:",
+            "Un problema que exige esfuerzo para ser superado",
+            ["Una recompensa inmediata", "Un proyecto concluido", "Una acción sin importancia"],
+            "“Desafío” evoca dificuldade e exigência de solução."
         ],
         [
-            "“Lucía usa bicicleta porque vive cerca.” ¿Cuál es la causa?",
-            "Vive cerca",
-            [
-                "No tiene bicicleta",
-                "Vive muy lejos",
-                "No trabaja"
-            ],
-            "Porque introduce la causa."
+            "En “La noticia fue publicada antes del anuncio oficial”, la idea principal es:",
+            "La noticia apareció antes de la información oficial",
+            ["La noticia fue aprobada por el gobierno", "La noticia terminó definitivamente", "La noticia tuvo múltiples autores"],
+            "El enunciado destaca a cronologia da publicação."
         ],
         [
-            "“Los datos necesitan contexto.” La idea principal es:",
-            "La información necesita interpretación",
-            [
-                "Todos los datos son falsos",
-                "El contexto no importa",
-                "Los números explican todo"
-            ],
-            "El contexto ayuda a comprender la información."
+            "La lectura crítica de un texto exige analizar principalmente:",
+            "La intención, el contexto y la evidencia",
+            ["Solo el número de páginas", "Solo la aparência visual", "Solo el nombre del autor"],
+            "Un texto debe ser interpretado considerando motivos e contexto."
+        ],
+        [
+            "“Comprueba antes de compartir” en español recomienda:",
+            "Verificar la información antes de difundirla",
+            ["Compartir todo sin confirmar", "Ignorar el contenido", "Publicar inmediatamente"],
+            "La recomendación enfatiza la responsabilidad de conferir a veracidade."
         ]
     ]
 };
@@ -893,15 +937,23 @@ function gerarQuestoes() {
         bancoQuestoes[materiaSelecionada] || [];
 
     const bancoEmbaralhado =
-        embaralhar(bancoAtual, random);
+        embaralhar([...bancoAtual], random);
 
-    for (let i = 0; i < 50; i++) {
-        const item =
-            bancoEmbaralhado[i % bancoEmbaralhado.length];
+    const itensUsados = new Set();
+
+    for (let i = 0; lista.length < 50 && i < bancoEmbaralhado.length * 3; i++) {
+        const item = bancoEmbaralhado[i % bancoEmbaralhado.length];
+        const chave = JSON.stringify(item);
+
+        if (itensUsados.has(chave)) {
+            continue;
+        }
+
+        itensUsados.add(chave);
 
         const tipo =
             item.tipo ||
-            tiposPorMateria[materiaSelecionada][i % tiposPorMateria[materiaSelecionada].length];
+            tiposPorMateria[materiaSelecionada][lista.length % tiposPorMateria[materiaSelecionada].length];
 
         lista.push(
             criarQuestao(
@@ -914,6 +966,27 @@ function gerarQuestoes() {
                 tipo
             )
         );
+    }
+
+    if (lista.length < 50) {
+        while (lista.length < 50) {
+            const item = bancoEmbaralhado[lista.length % bancoEmbaralhado.length];
+            const tipo =
+                item.tipo ||
+                tiposPorMateria[materiaSelecionada][lista.length % tiposPorMateria[materiaSelecionada].length];
+
+            lista.push(
+                criarQuestao(
+                    materiaSelecionada,
+                    item[0],
+                    item[1],
+                    item[2],
+                    item[3],
+                    random,
+                    tipo
+                )
+            );
+        }
     }
 
     return embaralhar(lista, random);
@@ -1243,13 +1316,17 @@ document
 
 /* BOTÃO PRINCIPAL */
 
-botaoComecar.addEventListener(
-    "click",
-    iniciarQuiz
-);
+botaoComecar.addEventListener("click", () => {
+    if (!salvarCadastro()) {
+        return;
+    }
+
+    iniciarQuiz();
+});
 
 /* INICIALIZA O SITE */
 
+carregarCadastro();
 criarMaterias();
 criarNiveis();
 atualizarBotaoInicial();

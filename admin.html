@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel administrativo | Ritmo ENEM</title>
+    <style>
+        :root { font-family: "Segoe UI", Arial, sans-serif; color: #1f2328; background: #f5f3ef; }
+        body { max-width: 980px; margin: 0 auto; padding: 32px 16px; }
+        main { padding: 28px; background: #fff; border: 1px solid #e4dfd7; border-radius: 18px; box-shadow: 0 18px 40px rgba(22, 26, 31, .08); }
+        h1 { margin-top: 0; }
+        form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        input, button { padding: 11px 12px; border: 1px solid #d9d2c9; border-radius: 9px; font: inherit; }
+        input { flex: 1 1 260px; }
+        button { background: #1f2328; color: #fff; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 8px; border-bottom: 1px solid #e4dfd7; text-align: left; }
+        #status { color: #b16060; }
+        @media (max-width: 640px) { main { padding: 20px 14px; overflow-x: auto; } table { min-width: 650px; } }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Painel de acessos</h1>
+        <p>Consulte os usuários cadastrados e a data do último acesso.</p>
+        <form id="formularioAdmin">
+            <button type="submit">Atualizar usuários</button>
+        </form>
+        <p id="status"></p>
+        <table>
+            <thead>
+                <tr><th>Nome</th><th>E-mail</th><th>Cadastro</th><th>Último acesso</th></tr>
+            </thead>
+            <tbody id="usuarios"></tbody>
+        </table>
+    </main>
+    <script>
+        const formulario = document.getElementById("formularioAdmin");
+        const status = document.getElementById("status");
+        const usuarios = document.getElementById("usuarios");
+
+        function dataLocal(valor) {
+            return valor ? new Date(valor).toLocaleString("pt-BR") : "Nunca";
+        }
+
+        formulario.addEventListener("submit", async (evento) => {
+            evento.preventDefault();
+            status.textContent = "Carregando...";
+            usuarios.innerHTML = "";
+
+            try {
+                const resposta = await fetch("/api/admin/users");
+                const dados = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(dados.error || "Não foi possível carregar os usuários.");
+                }
+
+                usuarios.innerHTML = dados.map((usuario) => `
+                    <tr>
+                        <td>${usuario.name}</td>
+                        <td>${usuario.email}</td>
+                        <td>${dataLocal(usuario.createdAt)}</td>
+                        <td>${dataLocal(usuario.lastAccessAt)}</td>
+                    </tr>
+                `).join("");
+                status.textContent = `${dados.length} usuário(s) encontrado(s).`;
+                status.style.color = "#3c6d56";
+            } catch (erro) {
+                status.textContent = erro.message;
+                status.style.color = "#b16060";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -252,6 +252,60 @@
             font-size: 14px;
         }
 
+        .cadastro {
+            margin-top: 18px;
+            padding: 16px;
+            border: 1px solid var(--linha);
+            border-radius: 14px;
+            background: #faf8f5;
+        }
+
+        .cadastro label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--cinza);
+        }
+
+        .cadastro input {
+            width: 100%;
+            padding: 11px 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--linha);
+            border-radius: 10px;
+            font: inherit;
+            background: white;
+        }
+
+        .lista-usuarios {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #f6f3ee;
+            color: var(--escuro);
+            font-size: 12px;
+        }
+
+        .lista-usuarios strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .cadastro input:focus {
+            outline: 2px solid rgba(97, 91, 83, 0.18);
+            border-color: var(--destaque);
+        }
+
+        .cadastro small {
+            display: block;
+            color: var(--cinza);
+            font-size: 12px;
+        }
+
         .botao-principal {
             width: 100%;
             padding: 16px;
@@ -552,8 +606,26 @@
 
             <p class="explicacao-nivel" id="explicacaoNivel"></p>
 
+            <div class="cadastro">
+                <label for="nomeCadastro">Nome</label>
+                <input id="nomeCadastro" type="text" placeholder="Digite seu nome" />
+
+                <label for="emailCadastro">E-mail</label>
+                <input id="emailCadastro" type="email" placeholder="seu@email.com" />
+
+                <label for="senhaCadastro">Senha</label>
+                <input id="senhaCadastro" type="password" placeholder="Crie uma senha" />
+
+                <small id="statusCadastro">Seu acesso fica salvo com segurança no servidor.</small>
+
+                <div class="lista-usuarios" id="listaUsuarios">
+                    <strong>Quem entrou</strong>
+                    <span>Nenhum usuário cadastrado ainda.</span>
+                </div>
+            </div>
+
             <button class="botao-principal" id="botaoComecar">
-                Começar nível 1
+                Entrar e começar
             </button>
         </div>
     </section>
