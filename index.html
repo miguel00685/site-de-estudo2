@@ -1,0 +1,614 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ritmo ENEM | Treino diário</title>
+
+    <style>
+        :root {
+            --fundo: #f5f3ef;
+            --fundo-escuro: #efeae3;
+            --cartao: #ffffff;
+            --escuro: #1f2328;
+            --cinza: #61656a;
+            --linha: #e4dfd7;
+            --destaque: #615b53;
+            --destaque-claro: #e9e1d7;
+            --destaque-forte: #d9c8b1;
+            --correto: #3c6d56;
+            --errado: #b16060;
+            --sombra: 0 18px 40px rgba(22, 26, 31, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, var(--fundo) 0%, var(--fundo-escuro) 100%);
+            color: var(--escuro);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        .cabecalho {
+            width: min(1180px, calc(100% - 32px));
+            min-height: 75px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo-simbolo {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border: 2px solid var(--escuro);
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--destaque-claro), var(--destaque-forte));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+        }
+
+        .cabecalho nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .cabecalho a {
+            color: var(--escuro);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .inicio {
+            width: min(1180px, calc(100% - 32px));
+            min-height: 650px;
+            margin: auto;
+            padding: 60px;
+            border-radius: 30px;
+            background: radial-gradient(circle at top left, #2d333a 0%, #1d2126 50%, #171b1f 100%);
+            color: white;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 60px;
+            box-shadow: var(--sombra);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .data {
+            color: var(--destaque-claro);
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .inicio h1 {
+            max-width: 600px;
+            margin: 20px 0;
+            font-size: clamp(52px, 7vw, 90px);
+            line-height: 0.95;
+            letter-spacing: -5px;
+        }
+
+        .inicio h1 span {
+            color: var(--destaque-claro);
+            font-family: Georgia, serif;
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .descricao {
+            max-width: 520px;
+            color: #d2d0cc;
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        .materias {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 25px;
+        }
+
+        .materias span {
+            padding: 7px 12px;
+            border: 1px solid #5c5e63;
+            border-radius: 30px;
+            font-size: 13px;
+        }
+
+        .painel {
+            padding: 28px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.96);
+            color: var(--escuro);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+            border: 1px solid rgba(31,35,40,0.04);
+        }
+
+        .painel-topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .painel-topo h2 {
+            margin: 5px 0 20px;
+        }
+
+        .contador {
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: var(--fundo);
+            font-weight: bold;
+        }
+
+        .seletor-materias {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 0 16px;
+        }
+
+        .materia-botao {
+            padding: 8px 12px;
+            border: 1px solid var(--linha);
+            border-radius: 999px;
+            background: #f7f4f1;
+            color: var(--escuro);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .materia-botao.ativo {
+            border-color: var(--destaque);
+            background: var(--destaque-claro);
+            box-shadow: inset 0 0 0 1px rgba(97,91,83,0.1);
+        }
+
+        .seletor-niveis {
+            display: grid;
+            gap: 8px;
+        }
+
+        .nivel {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid var(--linha);
+            border-radius: 14px;
+            background: white;
+            display: grid;
+            grid-template-columns: 42px 1fr;
+            gap: 12px;
+            align-items: center;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nivel:hover {
+            border-color: var(--destaque);
+            transform: translateY(-1px);
+        }
+
+        .nivel.ativo {
+            border-color: var(--destaque);
+            background: #f3efe9;
+            box-shadow: inset 4px 0 var(--destaque);
+        }
+
+        .numero-nivel {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 9px;
+            background: var(--destaque-claro);
+            font-weight: bold;
+        }
+
+        .nivel.ativo .numero-nivel {
+            background: var(--escuro);
+            color: white;
+        }
+
+        .nivel strong,
+        .nivel small {
+            display: block;
+        }
+
+        .nivel small {
+            margin-top: 2px;
+            color: var(--cinza);
+        }
+
+        .explicacao-nivel {
+            margin: 15px 0;
+            color: var(--cinza);
+            font-size: 14px;
+        }
+
+        .botao-principal {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--escuro), #31363d);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 12px 20px rgba(31,35,40,0.2);
+        }
+
+        .botao-principal:hover {
+            background: linear-gradient(135deg, #2d3137, #3a4048);
+            transform: translateY(-1px);
+        }
+
+        .quiz {
+            width: min(1000px, calc(100% - 32px));
+            margin: 50px auto;
+        }
+
+        .escondido {
+            display: none;
+        }
+
+        .quiz-topo {
+            margin-bottom: 20px;
+        }
+
+        .quiz-topo div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: var(--cinza);
+            font-weight: bold;
+        }
+
+        .barra {
+            height: 10px;
+            overflow: hidden;
+            border-radius: 50px;
+            background: var(--linha);
+        }
+
+        .barra-progresso {
+            width: 0;
+            height: 100%;
+            border-radius: 50px;
+            background: var(--destaque);
+            transition: width 0.3s;
+        }
+
+        .questao-cartao {
+            padding: 35px;
+            border: 1px solid var(--linha);
+            border-radius: 24px;
+            background: white;
+            box-shadow: var(--sombra);
+        }
+
+        .materia {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 30px;
+            background: var(--destaque-claro);
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .tipo-questao {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f3efe9;
+            color: var(--escuro);
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .questao-cartao h2 {
+            margin: 25px 0;
+            font-size: 24px;
+            line-height: 1.5;
+        }
+
+        .alternativas {
+            display: grid;
+            gap: 10px;
+        }
+
+        .alternativa {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--linha);
+            border-radius: 12px;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .alternativa:hover {
+            border-color: var(--destaque);
+        }
+
+        .alternativa.selecionada {
+            border-color: var(--destaque);
+            background: #eeece7;
+        }
+
+        .alternativa.correta {
+            border-color: var(--correto);
+            background: #eef6f1;
+        }
+
+        .alternativa.errada {
+            border-color: var(--errado);
+            background: #f8eeee;
+        }
+
+        .letra {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 8px;
+            background: var(--fundo);
+            font-weight: bold;
+        }
+
+        .feedback {
+            margin-top: 18px;
+            padding: 15px;
+            border-left: 5px solid var(--correto);
+            border-radius: 8px;
+            background: #eef6f1;
+        }
+
+        .feedback.erro {
+            border-color: var(--errado);
+            background: #f8eeee;
+        }
+
+        .acoes {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+        }
+
+        .acoes button {
+            padding: 13px 18px;
+            border: 1px solid var(--linha);
+            border-radius: 10px;
+            background: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .acoes .confirmar {
+            border-color: var(--escuro);
+            background: var(--escuro);
+            color: white;
+        }
+
+        .acoes button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .resultado {
+            width: min(600px, calc(100% - 32px));
+            margin: 50px auto;
+            padding: 40px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8f3ed 100%);
+            text-align: center;
+            box-shadow: var(--sombra);
+            border: 1px solid rgba(97,91,83,0.07);
+        }
+
+        .resultado h2 {
+            font-size: 32px;
+        }
+
+        .nota {
+            margin: 25px 0;
+            font-size: 64px;
+            font-weight: bold;
+        }
+
+        .rodape {
+            margin-top: 70px;
+            padding: 30px;
+            border-top: 1px solid var(--linha);
+            color: var(--cinza);
+            text-align: center;
+        }
+
+        @media (max-width: 850px) {
+            .inicio {
+                padding: 35px 20px;
+                grid-template-columns: 1fr;
+            }
+
+            .inicio h1 {
+                letter-spacing: -3px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .cabecalho nav {
+                display: none;
+            }
+
+            .inicio {
+                width: calc(100% - 16px);
+                border-radius: 20px;
+            }
+
+            .questao-cartao {
+                padding: 20px;
+            }
+
+            .acoes {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .acoes .confirmar {
+                grid-column: 1 / -1;
+                grid-row: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="cabecalho">
+    <div class="logo">
+        <span class="logo-simbolo">R</span>
+        Ritmo ENEM
+    </div>
+
+    <nav>
+        <a href="#inicio">Início</a>
+        <a href="#quiz">Questões</a>
+    </nav>
+</header>
+
+<main>
+    <section class="inicio" id="inicio">
+        <div>
+            <p class="data" id="dataAtual"></p>
+
+            <h1>
+                Treino de ENEM,
+                <span>em níveis progressivos.</span>
+            </h1>
+
+            <p class="descricao">
+                Pratique 50 questões por dia, começando por uma fase mais acessível
+                e avançando conforme seu ritmo e desempenho.
+            </p>
+
+            <div class="materias">
+                <span>Matemática</span>
+                <span>Português</span>
+                <span>Natureza</span>
+                <span>Humanas</span>
+                <span>Inglês</span>
+                <span>Espanhol</span>
+            </div>
+        </div>
+
+        <div class="painel">
+            <div class="painel-topo">
+                <div>
+                    <small>SELEÇÃO</small>
+                    <h2>Escolha o nível</h2>
+                </div>
+
+                <span class="contador">50 questões</span>
+            </div>
+
+            <div class="seletor-materias" id="seletorMaterias"></div>
+
+            <div class="seletor-niveis" id="seletorNiveis"></div>
+
+            <p class="explicacao-nivel" id="explicacaoNivel"></p>
+
+            <button class="botao-principal" id="botaoComecar">
+                Começar nível 1
+            </button>
+        </div>
+    </section>
+
+    <section class="quiz escondido" id="quiz">
+        <div class="quiz-topo">
+            <div>
+                <span id="nivelQuiz">Nível 1</span>
+                <span id="contadorQuestoes">Questão 1 de 50</span>
+            </div>
+
+            <div class="barra">
+                <div class="barra-progresso" id="barraProgresso"></div>
+            </div>
+        </div>
+
+        <article class="questao-cartao">
+            <span class="materia" id="materiaQuestao"></span>
+            <span class="tipo-questao" id="tipoQuestao"></span>
+
+            <h2 id="pergunta"></h2>
+
+            <div class="alternativas" id="alternativas"></div>
+
+            <div class="feedback escondido" id="feedback"></div>
+
+            <div class="acoes">
+                <button id="anterior">← Anterior</button>
+                <button class="confirmar" id="confirmar" disabled>
+                    Confirmar resposta
+                </button>
+                <button id="proxima">Próxima →</button>
+            </div>
+        </article>
+    </section>
+
+    <section class="resultado escondido" id="resultado">
+        <p>RESULTADO DO DIA</p>
+        <h2>Treino concluído</h2>
+
+        <div class="nota" id="notaFinal">0%</div>
+
+        <p id="textoResultado"></p>
+
+        <button class="botao-principal" id="voltarQuestoes">
+            Voltar às questões
+        </button>
+    </section>
+</main>
+
+<footer class="rodape">
+    Questões demonstrativas para estudo. Não são questões oficiais do Inep.
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
