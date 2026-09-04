@@ -2,27 +2,27 @@ const niveis = [
     {
         nome: "Base ativa",
         descricao:
-            "Questões tranquilas, mas que exigem atenção e interpretação."
+            "Questões introdutórias, com leitura cuidadosa e aplicação direta."
     },
     {
         nome: "Consolidação",
         descricao:
-            "Problemas com mais etapas e relações entre conceitos."
+            "Problemas com duas etapas e relações entre conceitos."
     },
     {
         nome: "Ritmo ENEM",
         descricao:
-            "Questões contextualizadas no estilo da prova."
+            "Questões contextualizadas que exigem interpretar dados e contexto."
     },
     {
         nome: "Alta performance",
         descricao:
-            "Textos maiores e alternativas mais próximas."
+            "Textos mais densos, alternativas próximas e análise de consequências."
     },
     {
         nome: "Desafio máximo",
         descricao:
-            "Problemas avançados que misturam diferentes conceitos."
+            "Problemas avançados que combinam conceitos e exigem eliminar distrações."
     }
 ];
 
@@ -37,6 +37,7 @@ const nivelPorMateria = {};
 const materias = [
     "Matemática",
     "Português",
+    "História",
     "Natureza",
     "Humanas",
     "Inglês",
@@ -413,9 +414,117 @@ function criarQuestao(
     };
 }
 
+function aumentarComplexidade(questao, indice) {
+    if (nivelSelecionado < 2) {
+        return questao;
+    }
+
+    const comandos = {
+        2: "Analise o enunciado e relacione as informações antes de escolher a alternativa.",
+        3: "Considere o contexto apresentado e identifique a interpretação mais consistente.",
+        4: "Além da informação principal, avalie a consequência implícita no enunciado.",
+        5: "Resolva considerando as relações entre os conceitos e descarte as alternativas parcialmente corretas."
+    };
+
+    const comando = comandos[nivelSelecionado];
+
+    questao.pergunta = `${comando}\n\n${questao.pergunta}`;
+    questao.complexidade = `Nível ${nivelSelecionado} — ${niveis[nivelSelecionado - 1].nome}`;
+
+    if (indice % 2 === 0 && nivelSelecionado >= 4) {
+        questao.tipo = `${questao.tipo} analítico`;
+    }
+
+    return questao;
+}
+
 /* QUESTÕES DE MATEMÁTICA */
 
 function gerarMatematica(random, indice) {
+    if (nivelSelecionado >= 3) {
+        const desafio = indice % 5;
+
+        if (desafio === 0) {
+            const menor = numeroAleatorio(random, 2, 7);
+            const maior = menor + numeroAleatorio(random, 3, 8);
+            const soma = menor + maior;
+            const produto = menor * maior;
+
+            return criarQuestao(
+                "Matemática",
+                `As raízes de uma equação quadrática são positivas, têm soma ${soma} e produto ${produto}. Qual é a maior raiz?`,
+                String(maior),
+                [String(menor), String(soma), String(produto)],
+                "Se as raízes são x e y, então x + y é a soma e xy é o produto. A maior raiz é obtida pela fórmula de Bhaskara.",
+                random
+            );
+        }
+
+        if (desafio === 1) {
+            const total = numeroAleatorio(random, 6, 10);
+            const favoraveis = numeroAleatorio(random, 2, total - 2);
+            const extras = numeroAleatorio(random, 2, 5);
+            const probabilidade = (favoraveis / total) * 100;
+            const probabilidadeCondicional = (favoraveis / (total + extras)) * 100;
+
+            return criarQuestao(
+                "Matemática",
+                `Uma urna tem ${favoraveis} peças aprovadas e ${total - favoraveis} reprovadas. Após incluir ${extras} peças reprovadas, uma peça é retirada ao acaso. Qual é a probabilidade de ela ser aprovada?`,
+                `${probabilidadeCondicional.toFixed(1)}%`,
+                [`${probabilidade.toFixed(1)}%`, `${(favoraveis / extras * 100).toFixed(1)}%`, "50%"],
+                "O número de peças aprovadas permanece igual, mas o total aumenta com as novas peças reprovadas. Portanto, divide-se o número de aprovadas pelo novo total.",
+                random
+            );
+        }
+
+        if (desafio === 2) {
+            const raio = numeroAleatorio(random, 4, 9);
+            const area = Math.PI * raio * raio;
+            const lado = numeroAleatorio(random, 3, 8);
+            const areaQuadrado = lado * lado;
+            const percentual = ((area / areaQuadrado) * 100).toFixed(1);
+
+            return criarQuestao(
+                "Matemática",
+                `Uma circunferência de raio ${raio} cm está desenhada sobre uma placa quadrada de lado ${lado} cm. Usando π = 3,14, qual percentual aproximado da área da placa corresponde à área do círculo?`,
+                `${((3.14 * raio * raio) / areaQuadrado * 100).toFixed(1)}%`,
+                [`${percentual}%`, `${(areaQuadrado / (3.14 * raio * raio) * 100).toFixed(1)}%`, `${(raio / lado * 100).toFixed(1)}%`],
+                "Calcula-se a área do círculo por πr², divide-se pela área do quadrado e multiplica-se o resultado por 100.",
+                random
+            );
+        }
+
+        if (desafio === 3) {
+            const capital = numeroAleatorio(random, 8, 20) * 100;
+            const taxa = numeroAleatorio(random, 2, 5);
+            const periodos = numeroAleatorio(random, 2, 4);
+            const montante = capital * Math.pow(1 + taxa / 100, periodos);
+
+            return criarQuestao(
+                "Matemática",
+                `Um investimento de ${formatarDinheiro(capital)} rende juros compostos de ${taxa}% ao período durante ${periodos} períodos. Qual é o montante aproximado ao final?`,
+                formatarDinheiro(montante),
+                [formatarDinheiro(capital * (1 + taxa * periodos / 100)), formatarDinheiro(capital + taxa * periodos), formatarDinheiro(capital * Math.pow(1 + taxa / 100, periodos - 1))],
+                "Em juros compostos, o fator (1 + taxa) é elevado ao número de períodos. Não se soma a taxa diretamente ao capital.",
+                random
+            );
+        }
+
+        const a = numeroAleatorio(random, 2, 6);
+        const b = numeroAleatorio(random, 1, 5);
+        const x = numeroAleatorio(random, 2, 7);
+        const resultado = a * (x + b) + b;
+
+        return criarQuestao(
+            "Matemática",
+            `Considere f(x) = ${a}x + ${b} e g(x) = x + ${b}. Qual é o valor de f(g(${x}))?`,
+            String(resultado),
+            [String(a * x + b), String(a * (x + b)), String(a * x + 2 * b + 1)],
+            `Primeiro, g(${x}) = ${x + b}. Depois, f(${x + b}) = ${a}(${x + b}) + ${b} = ${resultado}.`,
+            random
+        );
+    }
+
     const tipo = indice % 5;
 
     if (tipo === 0) {
@@ -752,6 +861,63 @@ const bancoQuestoes = {
         ]
     ],
 
+    História: [
+        [
+            "Fonte: Em uma carta de 1888, um fazendeiro afirma que a abolição alterou a lei, mas não criou meios para que os libertos participassem da vida econômica. A crítica central do documento está relacionada à:",
+            "Persistência de desigualdades após a abolição",
+            ["Defesa do retorno da escravidão", "Criação imediata de direitos sociais amplos", "Desaparição dos conflitos no campo"],
+            "A fonte distingue a mudança jurídica da transformação social, sugerindo que a liberdade formal não eliminou a exclusão econômica."
+        ],
+        [
+            "Fonte: Um jornal operário do início do século XX descreve jornadas extensas, baixos salários e a organização de associações de trabalhadores. A leitura do texto permite identificar:",
+            "A formação de reivindicações coletivas no contexto industrial",
+            ["A ausência de conflitos entre patrões e empregados", "A rejeição da urbanização pelos trabalhadores", "O fim das relações assalariadas"],
+            "O documento relaciona condições de trabalho e organização política, característica da formação do movimento operário."
+        ],
+        [
+            "Fonte: Ao justificar a expansão marítima, um cronista europeu combina argumentos religiosos, comerciais e políticos. Considerando a finalidade do relato, é mais adequado concluir que ele:",
+            "Constrói uma justificativa favorável aos interesses da expansão",
+            ["Registra uma descrição neutra e sem valores", "Rejeita qualquer contato entre sociedades", "Apresenta apenas dados geográficos sem interpretação"],
+            "A seleção dos argumentos revela a perspectiva do autor e ajuda a legitimar o projeto expansionista."
+        ],
+        [
+            "Fonte: Durante a Revolução Francesa, diferentes grupos defenderam a liberdade, mas divergiram sobre quem deveria participar da política. Essa tensão evidencia que:",
+            "Ideias universais podiam conviver com limites sociais e políticos",
+            ["Todos os grupos tinham os mesmos interesses", "A revolução eliminou imediatamente as desigualdades", "A linguagem política não sofreu mudanças"],
+            "A interpretação deve considerar tanto o discurso de direitos quanto as exclusões presentes na prática."
+        ],
+        [
+            "Fonte: Um decreto colonial regulamenta o comércio de determinados produtos e pune comerciantes que negociem fora das rotas autorizadas. A medida indica uma tentativa de:",
+            "Reforçar o controle metropolitano sobre a economia colonial",
+            ["Garantir autonomia comercial à colônia", "Reduzir a arrecadação da metrópole", "Encerrar a circulação atlântica"],
+            "A regulamentação das rotas e das mercadorias busca concentrar benefícios e fiscalização nas mãos da metrópole."
+        ],
+        [
+            "Fonte: Um depoimento de 1968 relata que a censura atingia jornais, peças e músicas, enquanto o governo apresentava a medida como necessária à segurança nacional. O contraste entre essas informações permite analisar:",
+            "A disputa entre a justificativa oficial e os efeitos sobre a liberdade de expressão",
+            ["A inexistência de censura cultural", "A plena liberdade de imprensa no período", "A separação entre política e produção artística"],
+            "A fonte apresenta a justificativa do regime e uma consequência concreta, permitindo confrontar discurso e prática."
+        ],
+        [
+            "Fonte: Em uma entrevista, uma liderança indígena afirma que a demarcação não é apenas uma questão de propriedade, mas também de memória, proteção ambiental e continuidade cultural. A principal chave de interpretação é:",
+            "A relação entre território, identidade e direitos coletivos",
+            ["A redução do território a um bem comercial", "A oposição entre cultura e preservação ambiental", "A defesa de fronteiras sem relação com a história"],
+            "O depoimento amplia o conceito de território ao relacioná-lo à reprodução social, à memória e ao ambiente."
+        ],
+        [
+            "Fonte: Um gráfico histórico mostra crescimento urbano acelerado após a instalação de indústrias, mas também aumento de moradias precárias nas periferias. A interpretação mais consistente é que a industrialização:",
+            "Gerou empregos e urbanização, mas de modo socialmente desigual",
+            ["Distribuiu renda e infraestrutura de forma uniforme", "Impediu o crescimento das cidades", "Eliminou as diferenças entre os grupos sociais"],
+            "O gráfico exige relacionar crescimento econômico, migração e desigualdade, sem tratar a industrialização como fenômeno apenas positivo."
+        ],
+        [
+            "Fonte: Dois livros didáticos descrevem a mesma revolta: um a chama de desordem, e o outro destaca a ação política de grupos populares. A diferença entre os relatos mostra que o conhecimento histórico:",
+            "É construído a partir de interpretações, escolhas e perspectivas",
+            ["Depende apenas da data dos acontecimentos", "É sempre idêntico em qualquer narrativa", "Dispensa a análise da autoria das fontes"],
+            "Comparar narrativas revela que a seleção de palavras e enfoques interfere na interpretação do passado."
+        ]
+    ],
+
     Humanas: [
         [
             "A cidadania plena pressupõe, além dos direitos, o exercício de:",
@@ -927,6 +1093,7 @@ function gerarQuestoes() {
 
     const tiposPorMateria = {
         Português: ["Charge", "Texto", "Trecho", "Anúncio", "Opinião"],
+        História: ["Fonte histórica", "Documento", "Contexto", "Depoimento", "Análise"],
         Natureza: ["Experimento", "Dados", "Gráfico", "Ciclo", "Comparação"],
         Humanas: ["Mapa", "Texto", "Estatística", "Contexto", "Análise"],
         Inglês: ["Reading", "Dialogue", "Ad", "Context", "Message"],
@@ -976,7 +1143,7 @@ function gerarQuestoes() {
             tiposPorMateria[materiaSelecionada][lista.length % tiposPorMateria[materiaSelecionada].length];
 
         lista.push(
-            criarQuestao(
+            aumentarComplexidade(criarQuestao(
                 materiaSelecionada,
                 item[0],
                 item[1],
@@ -985,7 +1152,7 @@ function gerarQuestoes() {
                 random,
                 tipo,
                 estilosVestibular[lista.length % estilosVestibular.length]
-            )
+            ), lista.length)
         );
     }
 
@@ -997,7 +1164,7 @@ function gerarQuestoes() {
                 tiposPorMateria[materiaSelecionada][lista.length % tiposPorMateria[materiaSelecionada].length];
 
             lista.push(
-                criarQuestao(
+                aumentarComplexidade(criarQuestao(
                     materiaSelecionada,
                     item[0],
                     item[1],
@@ -1006,7 +1173,7 @@ function gerarQuestoes() {
                     random,
                     tipo,
                     estilosVestibular[lista.length % estilosVestibular.length]
-                )
+                ), lista.length)
             );
         }
     }
@@ -1114,6 +1281,9 @@ function mostrarQuestao() {
 
     document.getElementById("origemQuestao").textContent =
         questao.origem || "Questão autoral";
+
+    document.getElementById("complexidadeQuestao").textContent =
+        questao.complexidade || `Nível ${nivelSelecionado} — ${niveis[nivelSelecionado - 1].nome}`;
 
     document.getElementById("pergunta").textContent =
         questao.pergunta;
